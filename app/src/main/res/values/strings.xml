@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">AdorableCameraApp</string>
+
+    <string name="next_step">Now you can go to the next step</string>
 </resources>

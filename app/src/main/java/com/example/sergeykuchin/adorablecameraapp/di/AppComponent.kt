@@ -2,6 +2,7 @@ package com.example.sergeykuchin.adorablecameraapp.di
 
 import android.app.Application
 import com.example.sergeykuchin.adorablecameraapp.App
+import com.example.sergeykuchin.adorablecameraapp.di.activitymodules.CameraActivityModule
 import com.example.sergeykuchin.adorablecameraapp.di.activitymodules.MainActivityModule
 import dagger.BindsInstance
 import dagger.Component
@@ -12,7 +13,8 @@ import javax.inject.Singleton
 @Component(modules = [
     AndroidSupportInjectionModule::class,
     AppModule::class,
-    MainActivityModule::class])
+    MainActivityModule::class,
+    CameraActivityModule::class])
 interface AppComponent {
     @Component.Builder
     interface Builder {
