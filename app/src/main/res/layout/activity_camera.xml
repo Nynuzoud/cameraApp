@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/black">
+
+    <se.fastdev.ibinis.view.camera.AutoFitTextureView
+        android:id="@+id/texture"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        app:srcCompat="@drawable/ic_close_black_24_px"
+        android:scaleType="center"
+        android:background="@drawable/close_camera_button_background"
+        android:onClick="close"/>
+
+    <ToggleButton
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="@drawable/flash_button"
+        android:gravity="center"
+        android:textOn="@null"
+        android:textOff="@null"
+        android:onClick="switchFlash"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="203dp"
+        android:padding="16dp"
+        android:alpha="0.3"
+        android:background="@android:color/black"
+        android:layout_alignParentBottom="true"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="203dp"
+        android:padding="16dp"
+        android:layout_alignParentBottom="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif"
+            android:textStyle="normal"
+            android:textColor="#ffffff"
+            android:gravity="center_horizontal"
+            android:text="@string/now_you_can_go_to_the_next_step"
+            />
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="center"
+            android:onClick="takePicture"
+            android:src="@drawable/white_circle_background"/>
+
+        <ImageView
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:src="@drawable/blue_circle"/>
+
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="center"
+            android:onClick="openGallery"
+            android:background="@drawable/white_circle_background"
+            app:srcCompat="@drawable/ic_photo_library_black_24_px"/>
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:scaleType="center"
+            android:onClick="next"
+            android:layout_gravity="center_vertical|end"
+            android:rotation="180"
+            android:background="@drawable/white_ring_background"
+            app:srcCompat="@drawable/ic_arrow_back"/>
+
+    </FrameLayout>
+
+</RelativeLayout>
