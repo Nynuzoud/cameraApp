@@ -22,24 +22,22 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true" />
 
-        <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@drawable/background_button_close_camera"
-            android:onClick="close"
-            android:scaleType="center"
-            app:srcCompat="@drawable/ic_close_black_24dp" />
+        <!--<ImageView-->
+            <!--android:layout_width="60dp"-->
+            <!--android:layout_height="60dp"-->
+            <!--android:background="@drawable/background_button_close_camera"-->
+            <!--android:onClick="close"-->
+            <!--app:srcCompat="@drawable/ic_close_white_24dp" />-->
 
-        <ToggleButton
+        <ImageView
+            android:id="@+id/flash"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:background="@drawable/button_flash"
-            android:gravity="center"
-            android:onClick="switchFlash"
-            android:textOff="@null"
-            android:textOn="@null"
+            app:srcCompat="@drawable/ic_flash_auto_white_24dp"
+            android:onClick="@{viewModel::switchFlash}"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:padding="15dp"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -54,19 +52,6 @@
             android:layout_height="203dp"
             android:padding="16dp"
             app:layout_constraintBottom_toBottomOf="parent">
-
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:gravity="center_horizontal"
-                android:text="@string/next_step"
-                android:textColor="#ffffff"
-                android:textSize="16sp"
-                android:textStyle="normal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
 
             <ImageView
                 android:id="@+id/take_picture_white_background"
@@ -101,7 +86,7 @@
                 android:layout_height="48dp"
                 android:layout_gravity="center_vertical"
                 android:background="@drawable/background_white_circle"
-                android:onClick="openGallery"
+                android:onClick="@{viewModel::openGallery}"
                 android:scaleType="center"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

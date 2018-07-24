@@ -2,4 +2,13 @@
     <string name="app_name">AdorableCameraApp</string>
 
     <string name="next_step">Now you can go to the next step</string>
+
+    <string name="permission_error">We need access</string>
+
+    <string name="open_cam">Open camera</string>
+    <string name="take_picture">Take picture</string>
+
+    <string name="ok">OK</string>
+
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
 </resources>
