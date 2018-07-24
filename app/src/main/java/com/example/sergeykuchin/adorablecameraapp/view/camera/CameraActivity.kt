@@ -55,6 +55,10 @@ class CameraActivity : CommonActivity<CameraActivityVM, ActivityCameraBinding>()
         camera2Helper.takePicture()
     }
 
+    fun switchCam(view: View) {
+        camera2Helper.switchCam()
+    }
+
     override fun onResume() {
         super.onResume()
         camera2Helper.onResume()

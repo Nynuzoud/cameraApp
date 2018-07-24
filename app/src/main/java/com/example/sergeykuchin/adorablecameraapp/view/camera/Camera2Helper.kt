@@ -20,6 +20,7 @@ import com.example.sergeykuchin.adorablecameraapp.databinding.ActivityCameraBind
 import com.example.sergeykuchin.adorablecameraapp.helpers.camera.CameraHelperImpl
 import com.example.sergeykuchin.adorablecameraapp.other.extensions.showSnackBarErrorLoadData
 import com.example.sergeykuchin.adorablecameraapp.other.views.AutoFitTextureView
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -46,6 +47,22 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
             _binding = value
             mTextureView = _binding?.texture
         }
+
+    private var _cameraLensFacingDirection: Int = CameraCharacteristics.LENS_FACING_BACK
+    var cameraLensFacingDirection: Int
+        get() = _cameraLensFacingDirection
+        set(value) {
+            _cameraLensFacingDirection = value
+        }
+
+    fun switchCam() {
+        _cameraLensFacingDirection = when (_cameraLensFacingDirection) {
+            CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
+            else -> CameraCharacteristics.LENS_FACING_BACK
+        }
+        onPause()
+        onResume()
+    }
 
     /**
      * Conversion from screen rotation to JPEG orientation.
@@ -383,9 +400,9 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
             for (cameraId in manager.cameraIdList) {
                 val characteristics = manager.getCameraCharacteristics(cameraId)
 
-                // We don't use a front facing camera in this sample.
                 val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (facing != null && facing != _cameraLensFacingDirection) {
+                    Timber.d("Back cam has been opened")
                     continue
                 }
 
