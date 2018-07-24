@@ -20,6 +20,7 @@ import com.example.sergeykuchin.adorablecameraapp.databinding.ActivityCameraBind
 import com.example.sergeykuchin.adorablecameraapp.helpers.camera.CameraHelperImpl
 import com.example.sergeykuchin.adorablecameraapp.other.extensions.showSnackBarErrorLoadData
 import com.example.sergeykuchin.adorablecameraapp.other.views.AutoFitTextureView
+import com.example.sergeykuchin.adorablecameraapp.viewmodel.camera.FlashStatus
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -55,13 +56,59 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
             _cameraLensFacingDirection = value
         }
 
-    fun switchCam() {
+    fun switchCam(): Int {
         _cameraLensFacingDirection = when (_cameraLensFacingDirection) {
             CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
             else -> CameraCharacteristics.LENS_FACING_BACK
         }
         onPause()
         onResume()
+
+        return _cameraLensFacingDirection
+    }
+
+    private lateinit var cameraManager: CameraManager
+
+    private var _flash: FlashStatus = FlashStatus.AUTO
+    var flash: FlashStatus
+        get() = _flash
+        set(value) {
+            val saved = _flash
+            _flash = value
+            mPreviewRequestBuilder?.let {
+                updateFlash()
+                mCaptureSession?.let {
+                    try {
+                        mCaptureSession?.setRepeatingRequest(mPreviewRequestBuilder?.build(),
+                                mCaptureCallback, null)
+                    } catch (e: CameraAccessException) {
+                        _flash = saved
+                    }
+                }
+            }
+        }
+
+    private fun updateFlash() {
+        when (_flash) {
+            FlashStatus.AUTO -> {
+                mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
+                mPreviewRequestBuilder?.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF)
+            }
+            FlashStatus.ON -> {
+                mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH)
+                mPreviewRequestBuilder?.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF)
+            }
+            FlashStatus.OFF -> {
+                mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON)
+                mPreviewRequestBuilder?.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF)
+            }
+        }
     }
 
     /**
@@ -395,17 +442,16 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
      * @param height The height of available size for camera preview
      */
     private fun setUpCameraOutputs(width: Int, height: Int) {
-        val manager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        cameraManager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
-            for (cameraId in manager.cameraIdList) {
-                val characteristics = manager.getCameraCharacteristics(cameraId)
+            for (cameraId in cameraManager.cameraIdList) {
+                val characteristics = cameraManager.getCameraCharacteristics(cameraId)
 
                 val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
                 if (facing != null && facing != _cameraLensFacingDirection) {
                     Timber.d("Back cam has been opened")
                     continue
                 }
-
                 val map = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
 
@@ -485,7 +531,7 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
         } catch (e: NullPointerException) {
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
-            binding?.root?.showSnackBarErrorLoadData(R.string.camera_error, R.string.ok, {})
+            binding?.root?.showSnackBarErrorLoadData(R.string.camera_error, R.string.ok) {}
         }
 
     }
@@ -541,7 +587,7 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
     private fun startBackgroundThread() {
         mBackgroundThread = HandlerThread("CameraBackground")
         mBackgroundThread!!.start()
-        mBackgroundHandler = Handler(mBackgroundThread!!.looper)
+        mBackgroundHandler = Handler(mBackgroundThread?.looper)
     }
 
     /**
@@ -593,7 +639,8 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                                 mPreviewRequestBuilder!!.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                                 // Flash is automatically enabled when necessary.
-                                setAutoFlash(mPreviewRequestBuilder)
+                                //setAutoFlash(mPreviewRequestBuilder)
+                                updateFlash()
 
                                 // Finally, we start displaying the camera preview.
                                 mPreviewRequest = mPreviewRequestBuilder!!.build()
@@ -703,17 +750,33 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                 return
             }
             // This is the CaptureRequest.Builder that we use to take a picture.
-            val captureBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-            captureBuilder.addTarget(mImageReader!!.surface)
+            val captureBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+            captureBuilder?.addTarget(mImageReader?.surface)
 
             // Use the same AE and AF modes as the preview.
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
-            setAutoFlash(captureBuilder)
+            captureBuilder?.set(CaptureRequest.CONTROL_AF_MODE,
+                    mPreviewRequestBuilder?.get(CaptureRequest.CONTROL_AF_MODE))
+            //setAutoFlash(captureBuilder)
+            when (_flash) {
+                FlashStatus.AUTO -> {
+                    captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                            CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
+                }
+                FlashStatus.ON -> {
+                    captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                            CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH)
+                }
+                FlashStatus.OFF -> {
+                    captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                            CaptureRequest.CONTROL_AE_MODE_ON)
+                    captureBuilder?.set(CaptureRequest.FLASH_MODE,
+                            CaptureRequest.FLASH_MODE_OFF)
+                }
+            }
 
             // Orientation
             val rotation = activity?.windowManager?.defaultDisplay?.rotation
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation ?: 0))
+            captureBuilder?.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation ?: 0))
 
             val captureCallback = object : CameraCaptureSession.CaptureCallback() {
 
@@ -726,9 +789,9 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                 }
             }
 
-            mCaptureSession!!.stopRepeating()
-            mCaptureSession!!.abortCaptures()
-            mCaptureSession!!.capture(captureBuilder.build(), captureCallback, null)
+            mCaptureSession?.stopRepeating()
+            mCaptureSession?.abortCaptures()
+            mCaptureSession?.capture(captureBuilder?.build(), captureCallback, null)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
@@ -758,7 +821,10 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
             // Reset the auto-focus trigger
             mPreviewRequestBuilder!!.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
-            setAutoFlash(mPreviewRequestBuilder)
+            //setAutoFlash(mPreviewRequestBuilder)
+            updateFlash()
+            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                    CaptureRequest.CONTROL_AF_TRIGGER_IDLE)
             mCaptureSession!!.capture(mPreviewRequestBuilder!!.build(), mCaptureCallback,
                     mBackgroundHandler)
             // After this, the camera will go back to the normal state of preview.
@@ -773,8 +839,10 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
 
     private fun setAutoFlash(requestBuilder: CaptureRequest.Builder?) {
         if (mFlashSupported) {
-            requestBuilder!!.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
+            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+                    CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
+            mPreviewRequestBuilder?.set(CaptureRequest.FLASH_MODE,
+                    CaptureRequest.FLASH_MODE_OFF);
         }
     }
 

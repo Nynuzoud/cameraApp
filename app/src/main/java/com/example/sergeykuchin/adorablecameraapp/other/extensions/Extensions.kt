@@ -24,9 +24,9 @@ fun View.showSnackBarErrorLoadData(@StringRes message: Int, @StringRes buttonTex
             .make(this, message, Snackbar.LENGTH_INDEFINITE)
 
     snackbar
-            .setAction(buttonText, {
+            .setAction(buttonText) {
                 function()
                 snackbar.dismiss()
-            })
+            }
             .show()
 }

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.databinding.DataBindingUtil
+import android.hardware.camera2.CameraCharacteristics
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.view.View
@@ -38,6 +39,7 @@ class CameraActivity : CommonActivity<CameraActivityVM, ActivityCameraBinding>()
 
         viewModel.flashResource.simpleSubscribe({
             binding.flash.setImageDrawable(ContextCompat.getDrawable(this, it))
+            camera2Helper.flash = viewModel.flashStatus
         })
 
         camera2Helper.activity = this
@@ -56,7 +58,10 @@ class CameraActivity : CommonActivity<CameraActivityVM, ActivityCameraBinding>()
     }
 
     fun switchCam(view: View) {
-        camera2Helper.switchCam()
+        when (camera2Helper.switchCam()) {
+            CameraCharacteristics.LENS_FACING_BACK -> binding.flash.visibility = View.VISIBLE
+            else -> binding.flash.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
