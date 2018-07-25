@@ -3,10 +3,12 @@ package com.example.sergeykuchin.adorablecameraapp.viewmodel.imagesetup
 import android.arch.lifecycle.ViewModel
 import android.graphics.Bitmap
 import android.net.Uri
+import android.view.View
 import com.example.sergeykuchin.adorablecameraapp.R
 import com.example.sergeykuchin.adorablecameraapp.other.databinding.RecyclerConfiguration
 import com.example.sergeykuchin.adorablecameraapp.other.utils.Utils
 import com.example.sergeykuchin.adorablecameraapp.view.imagesetup.adapter.ImageFilter
+import io.reactivex.subjects.BehaviorSubject
 import javax.inject.Inject
 
 class ImageSetupActivityVM @Inject constructor(val utils: Utils): ViewModel() {
@@ -14,6 +16,10 @@ class ImageSetupActivityVM @Inject constructor(val utils: Utils): ViewModel() {
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////GETTERS/SETTERS///////////////////////////
     ///////////////////////////////////////////////////////////////////////////
+
+    private val _loadingVisibility: BehaviorSubject<Int> = BehaviorSubject.createDefault(View.VISIBLE)
+    val loadingVisibility: BehaviorSubject<Int>
+        get() = _loadingVisibility
 
     private var _fileUri: Uri? = null
 
@@ -45,18 +51,24 @@ class ImageSetupActivityVM @Inject constructor(val utils: Utils): ViewModel() {
         }
 
     private var _minifiedBitmap: Bitmap? = null
-    var minifiedBitmap: Bitmap?
-        get() = _minifiedBitmap
-        set(value) {
-            _minifiedBitmap = minifyBitmap(value)
-        }
 
-    private fun minifyBitmap(bitmap: Bitmap?): Bitmap? {
-        if (bitmap == null) return null
+    fun setMinifiedBitmap(bitmap: Bitmap?) {
+        if (bitmap == null) return
+        _minifiedBitmap = minifyBitmap(bitmap)
+    }
 
-        return Bitmap.createScaledBitmap(bitmap,
-                utils.convertDpToPx(R.dimen.filter_item_width).toInt(),
-                utils.convertDpToPx(R.dimen.filter_item_height).toInt(),
-                false)
+    fun getMinifiedBitmap(): Bitmap? = _minifiedBitmap
+
+    private fun minifyBitmap(bitmap: Bitmap): Bitmap? {
+
+        return utils.decodeSampledBitmapFromResource(
+                bitmap = bitmap,
+                reqWidthRes = R.dimen.filter_item_width,
+                reqHeightRes = R.dimen.filter_item_height
+        )
+//        return Bitmap.createScaledBitmap(bitmap,
+//                utils.convertDpToPx(R.dimen.filter_item_width).toInt(),
+//                utils.convertDpToPx(R.dimen.filter_item_height).toInt(),
+//                false)
     }
 }

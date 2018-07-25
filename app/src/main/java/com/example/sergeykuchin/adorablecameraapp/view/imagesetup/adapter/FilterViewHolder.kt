@@ -11,5 +11,7 @@ class FilterViewHolder(val binding: ItemFilterBinding,
 
         binding.filterImage.setImageBitmap(imageFilter.bitmap)
         binding.filterName.setText(imageFilter.nameRes)
+
+        binding.root.setOnClickListener { listener?.onClick(imageFilter) }
     }
 }

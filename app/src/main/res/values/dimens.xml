@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="filter_item_width">96dp</dimen>
-    <dimen name="filter_item_height">96dp</dimen>
+    <dimen name="filter_item_width">64dp</dimen>
+    <dimen name="filter_item_height">64dp</dimen>
 
 </resources>

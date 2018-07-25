@@ -1,7 +1,8 @@
 package com.example.sergeykuchin.adorablecameraapp.other.utils
 
+import android.graphics.Bitmap
+
 interface Utils {
 
-    fun convertDpToPx(dp: Float): Float
-    fun convertDpToPx(dpRes: Int): Float
+    fun decodeSampledBitmapFromResource(bitmap: Bitmap, reqWidthRes: Int, reqHeightRes: Int): Bitmap?
 }

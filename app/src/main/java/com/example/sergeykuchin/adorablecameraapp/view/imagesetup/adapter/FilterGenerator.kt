@@ -9,43 +9,37 @@ class FilterGenerator {
     //Actually better to use picasso-transformations here because it is more efficient.
     //But it is a test task, so I did this primitive filters
 
-    private val IMAGE_FILTER_ID_NORMAL = 212
-    private val IMAGE_FILTER_ID_GREYSCALE = 213
-    private val IMAGE_FILTER_ID_RED = 214
-    private val IMAGE_FILTER_ID_GREEN = 215
-    private val IMAGE_FILTER_ID_BLUE = 216
-
     fun generateFilters(bitmap: Bitmap?): List<ImageFilter>? {
         if (bitmap == null) return null
 
         val filters = ArrayList<ImageFilter>()
 
         filters.add(ImageFilter(
-                id = IMAGE_FILTER_ID_NORMAL,
+                id = FilterGeneratorTypes.IMAGE_FILTER_ID_NORMAL.id,
                 nameRes = R.string.normal,
                 bitmap = bitmap
         ))
 
         filters.add(ImageFilter(
-                id = IMAGE_FILTER_ID_GREYSCALE,
+                id = FilterGeneratorTypes.IMAGE_FILTER_ID_GREYSCALE.id,
                 nameRes = R.string.greyscale,
                 bitmap = applyGreyscaleEffect(bitmap)
         ))
 
         filters.add(ImageFilter(
-                id = IMAGE_FILTER_ID_RED,
+                id = FilterGeneratorTypes.IMAGE_FILTER_ID_RED.id,
                 nameRes = R.string.red,
                 bitmap = applyColorFilterEffect(bitmap, 255.0, 0.0, 0.0)
         ))
 
         filters.add(ImageFilter(
-                id = IMAGE_FILTER_ID_GREEN,
+                id = FilterGeneratorTypes.IMAGE_FILTER_ID_GREEN.id,
                 nameRes = R.string.green,
                 bitmap = applyColorFilterEffect(bitmap, 0.0, 255.0, 0.0)
         ))
 
         filters.add(ImageFilter(
-                id = IMAGE_FILTER_ID_BLUE,
+                id = FilterGeneratorTypes.IMAGE_FILTER_ID_BLUE.id,
                 nameRes = R.string.blue,
                 bitmap = applyColorFilterEffect(bitmap, 0.0, 0.0, 255.0)
         ))
@@ -54,7 +48,8 @@ class FilterGenerator {
         return filters
     }
 
-    private fun applyGreyscaleEffect(src: Bitmap): Bitmap {
+    fun applyGreyscaleEffect(src: Bitmap?): Bitmap? {
+        if (src == null) return null
         // constant factors
         val GS_RED = 0.299
         val GS_GREEN = 0.587
@@ -96,7 +91,9 @@ class FilterGenerator {
         return bmOut
     }
 
-    private fun applyColorFilterEffect(src: Bitmap, red: Double, green: Double, blue: Double): Bitmap {
+    fun applyColorFilterEffect(src: Bitmap?, red: Double, green: Double, blue: Double): Bitmap? {
+        if (src == null) return null
+
         // image size
         val width = src.width
         val height = src.height

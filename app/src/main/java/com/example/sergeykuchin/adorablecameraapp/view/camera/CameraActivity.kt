@@ -114,6 +114,7 @@ class CameraActivity : CommonActivity<CameraActivityVM, ActivityCameraBinding>()
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == GET_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             ImageSetupActivity.start(this, data?.data?.toString())
+            finish()
         }
     }
 
@@ -130,6 +131,7 @@ class CameraActivity : CommonActivity<CameraActivityVM, ActivityCameraBinding>()
         override fun pictureSaved(file: File?) {
             Timber.d("pictureSaved")
             ImageSetupActivity.start(this@CameraActivity, Uri.fromFile(file).toString())
+            finish()
         }
     }
 }

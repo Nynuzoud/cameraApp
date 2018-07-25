@@ -6,5 +6,5 @@ data class ImageFilter(
 
         val id: Int,
         val nameRes: Int,
-        val bitmap: Bitmap
+        val bitmap: Bitmap?
 )
