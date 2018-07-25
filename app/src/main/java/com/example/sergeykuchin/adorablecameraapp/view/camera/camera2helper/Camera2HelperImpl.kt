@@ -1,4 +1,4 @@
-package com.example.sergeykuchin.adorablecameraapp.view.camera
+package com.example.sergeykuchin.adorablecameraapp.view.camera.camera2helper
 
 import android.app.Activity
 import android.content.Context
@@ -7,6 +7,7 @@ import android.graphics.*
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
+import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -16,47 +17,34 @@ import android.view.Surface
 import android.view.TextureView
 import android.widget.Toast
 import com.example.sergeykuchin.adorablecameraapp.R
-import com.example.sergeykuchin.adorablecameraapp.databinding.ActivityCameraBinding
-import com.example.sergeykuchin.adorablecameraapp.helpers.camera.CameraHelperImpl
-import com.example.sergeykuchin.adorablecameraapp.other.extensions.showSnackBarErrorLoadData
 import com.example.sergeykuchin.adorablecameraapp.other.views.AutoFitTextureView
 import com.example.sergeykuchin.adorablecameraapp.viewmodel.camera.FlashStatus
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelperImpl) {
+class Camera2HelperImpl (val context: Context): Camera2Helper {
 
     private var _activity: Activity? = null
-    var activity: Activity?
+    override var activity: Activity?
         get() = _activity
         set(value) {
             _activity = value
         }
 
-    private var _binding: ActivityCameraBinding? = null
-    var binding: ActivityCameraBinding?
-        get() = _binding
-        set(value) {
-            _binding = value
-            mTextureView = _binding?.texture
-        }
-
     private var _cameraLensFacingDirection: Int = CameraCharacteristics.LENS_FACING_BACK
-    var cameraLensFacingDirection: Int
+    override var cameraLensFacingDirection: Int
         get() = _cameraLensFacingDirection
         set(value) {
             _cameraLensFacingDirection = value
         }
 
-    fun switchCam(): Int {
+    override fun switchCam(): Int {
         _cameraLensFacingDirection = when (_cameraLensFacingDirection) {
             CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
             else -> CameraCharacteristics.LENS_FACING_BACK
@@ -70,7 +58,7 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
     private lateinit var cameraManager: CameraManager
 
     private var _flash: FlashStatus = FlashStatus.AUTO
-    var flash: FlashStatus
+    override var flash: FlashStatus
         get() = _flash
         set(value) {
             val saved = _flash
@@ -86,6 +74,20 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                     }
                 }
             }
+        }
+
+    private var _errorListener: Camera2HelperErrorListener? = null
+    override var errorListener: Camera2HelperErrorListener?
+        get() = _errorListener
+        set(value) {
+            _errorListener = value
+        }
+
+    private var _actionListener: Camera2HelperActionListener? = null
+    override var actionListener: Camera2HelperActionListener?
+        get() = _actionListener
+        set(value) {
+            _actionListener = value
         }
 
     private fun updateFlash() {
@@ -186,7 +188,12 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
     /**
      * An [AutoFitTextureView] for camera preview.
      */
-    private var mTextureView: AutoFitTextureView? = null
+    private var _textureView: AutoFitTextureView? = null
+    override var textureView: AutoFitTextureView?
+        get() = _textureView
+        set(value) {
+            _textureView = value
+        }
 
     /**
      * A [CameraCaptureSession] for camera preview.
@@ -353,8 +360,8 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
         ORIENTATIONS.append(Surface.ROTATION_270, 180)
     }
 
-    fun createFile() {
-        mFile = cameraHelperImpl.createPictureWithUniqueName()
+    override fun createFile() {
+        mFile = createPictureWithUniqueName()
     }
 
     /**
@@ -416,21 +423,21 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
     }
 
 
-    fun onResume() {
+    override fun onResume() {
         startBackgroundThread()
 
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
-        if (mTextureView!!.isAvailable) {
-            openCamera(mTextureView!!.width, mTextureView!!.height)
+        if (_textureView!!.isAvailable) {
+            openCamera(_textureView!!.width, _textureView!!.height)
         } else {
-            mTextureView!!.surfaceTextureListener = mSurfaceTextureListener
+            _textureView!!.surfaceTextureListener = mSurfaceTextureListener
         }
     }
 
-    fun onPause() {
+    override fun onPause() {
         closeCamera()
         stopBackgroundThread()
     }
@@ -512,10 +519,10 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 val orientation = activity?.resources?.configuration?.orientation
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    mTextureView!!.setAspectRatio(
+                    _textureView!!.setAspectRatio(
                             mPreviewSize!!.width, mPreviewSize!!.height)
                 } else {
-                    mTextureView!!.setAspectRatio(
+                    _textureView!!.setAspectRatio(
                             mPreviewSize!!.height, mPreviewSize!!.width)
                 }
 
@@ -531,7 +538,7 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
         } catch (e: NullPointerException) {
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
-            binding?.root?.showSnackBarErrorLoadData(R.string.camera_error, R.string.ok) {}
+            errorListener?.errorCallback(e, R.string.camera_error, R.string.ok) {}
         }
 
     }
@@ -610,7 +617,7 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
      */
     private fun createCameraPreviewSession() {
         try {
-            val texture = mTextureView?.surfaceTexture
+            val texture = _textureView?.surfaceTexture
 
             // We configure the size of default buffer to be the size of camera preview we want.
             texture?.setDefaultBufferSize(mPreviewSize!!.width, mPreviewSize!!.height)
@@ -665,15 +672,15 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
     }
 
     /**
-     * Configures the necessary [android.graphics.Matrix] transformation to `mTextureView`.
+     * Configures the necessary [android.graphics.Matrix] transformation to `_textureView`.
      * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
+     * setUpCameraOutputs and also the size of `_textureView` is fixed.
      *
-     * @param viewWidth  The width of `mTextureView`
-     * @param viewHeight The height of `mTextureView`
+     * @param viewWidth  The width of `_textureView`
+     * @param viewHeight The height of `_textureView`
      */
     private fun configureTransform(viewWidth: Int, viewHeight: Int) {
-        if (null == mTextureView || null == mPreviewSize) {
+        if (null == _textureView || null == mPreviewSize) {
             return
         }
         val rotation = activity?.windowManager?.defaultDisplay?.rotation
@@ -693,13 +700,13 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180f, centerX, centerY)
         }
-        mTextureView!!.setTransform(matrix)
+        _textureView!!.setTransform(matrix)
     }
 
     /**
      * Initiate a still image capture.
      */
-    fun takePicture() {
+    override fun takePicture() {
         lockFocus()
     }
 
@@ -763,8 +770,10 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                             CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
                 }
                 FlashStatus.ON -> {
-                    captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
-                            CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH)
+//                    captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
+//                            CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH)
+                    captureBuilder?.set(CaptureRequest.FLASH_MODE,
+                            CaptureRequest.FLASH_MODE_SINGLE)
                 }
                 FlashStatus.OFF -> {
                     captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
@@ -783,9 +792,10 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
                 override fun onCaptureCompleted(session: CameraCaptureSession,
                                                 request: CaptureRequest,
                                                 result: TotalCaptureResult) {
-                    showToast("Saved: " + mFile!!)
-                    Log.d(TAG, mFile!!.toString())
+                    //showToast("Saved: " + mFile!!)
+                    Timber.d(mFile!!.toString())
                     unlockFocus()
+                    actionListener?.pictureSaved(mFile)
                 }
             }
 
@@ -837,15 +847,6 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
 
     }
 
-    private fun setAutoFlash(requestBuilder: CaptureRequest.Builder?) {
-        if (mFlashSupported) {
-            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
-            mPreviewRequestBuilder?.set(CaptureRequest.FLASH_MODE,
-                    CaptureRequest.FLASH_MODE_OFF);
-        }
-    }
-
     /**
      * Saves a JPEG [Image] into the specified [File].
      */
@@ -894,5 +895,13 @@ class Camera2Helper @Inject constructor(private val cameraHelperImpl: CameraHelp
             return java.lang.Long.signum(lhs.width.toLong() * lhs.height - rhs.width.toLong() * rhs.height)
         }
 
+    }
+
+    private fun createPictureWithUniqueName(): File {
+
+        val timeStamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        val pictureFile = "CAMERA_APP_$timeStamp"
+        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(pictureFile, ".jpg", storageDir)
     }
 }

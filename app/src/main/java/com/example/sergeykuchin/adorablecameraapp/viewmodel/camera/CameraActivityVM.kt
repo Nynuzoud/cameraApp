@@ -1,6 +1,7 @@
 package com.example.sergeykuchin.adorablecameraapp.viewmodel.camera
 
 import android.arch.lifecycle.ViewModel
+import android.hardware.camera2.CameraCharacteristics
 import android.view.View
 import com.example.sergeykuchin.adorablecameraapp.R
 import io.reactivex.subjects.BehaviorSubject
@@ -24,13 +25,20 @@ class CameraActivityVM @Inject constructor() : ViewModel() {
     val flashResource: BehaviorSubject<Int>
         get() = _flashResource
 
+    private var _flashVisibility: BehaviorSubject<Int> = BehaviorSubject.createDefault(View.VISIBLE)
+    var flashVisibility: BehaviorSubject<Int>
+        get() = _flashVisibility
+        set(value) {
+            _flashVisibility = value
+        }
+
     init {
         switchFlash()
     }
 
     fun switchFlash(view: View? = null) {
         when (_flashStatus) {
-            FlashStatus.AUTO ->  {
+            FlashStatus.AUTO -> {
                 _flashStatus = FlashStatus.ON
                 flashResource.onNext(R.drawable.ic_flash_on_white_24dp)
             }
@@ -46,6 +54,11 @@ class CameraActivityVM @Inject constructor() : ViewModel() {
 
     }
 
-    fun takePicture(view: View) {}
-    fun openGallery(view: View) {}
+    fun switchFlashVisibility(lens: Int) {
+        _flashVisibility.onNext(
+                when (lens) {
+                    CameraCharacteristics.LENS_FACING_BACK -> View.VISIBLE
+                    else -> View.GONE
+                })
+    }
 }

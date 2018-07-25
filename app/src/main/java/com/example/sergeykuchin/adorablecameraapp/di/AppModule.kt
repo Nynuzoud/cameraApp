@@ -2,6 +2,10 @@ package com.example.sergeykuchin.adorablecameraapp.di
 
 import android.app.Application
 import android.content.Context
+import com.example.sergeykuchin.adorablecameraapp.other.utils.Utils
+import com.example.sergeykuchin.adorablecameraapp.other.utils.UtilsImpl
+import com.example.sergeykuchin.adorablecameraapp.view.camera.camera2helper.Camera2Helper
+import com.example.sergeykuchin.adorablecameraapp.view.camera.camera2helper.Camera2HelperImpl
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -11,21 +15,18 @@ class AppModule {
 
 
     ////////////////////COMMON///////////////////
-
     @Singleton
     @Provides
     fun provideContext(app: Application): Context = app.applicationContext
 
-//    @Singleton
-//    @Provides
-//    fun provideCameraObject() = CameraObject()
+    /////////////CAMERA HELPER MODULE////////////
+    @Singleton
+    @Provides
+    fun provideCamera2Helper(context: Context): Camera2Helper = Camera2HelperImpl(context)
 
-//    /////////////////////Preferences////////////////////
-//
-//    @Singleton
-//    @Provides
-//    fun providePrefs(app: Application) : Preferences = PreferencesImpl(app)
-//
-//
+    ////////////////////UTILS//////////////////
+    @Singleton
+    @Provides
+    fun provideUtils(context: Context): Utils = UtilsImpl(context)
 
 }

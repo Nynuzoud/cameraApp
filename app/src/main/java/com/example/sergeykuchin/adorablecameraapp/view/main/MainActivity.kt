@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.view.View
 import com.example.sergeykuchin.adorablecameraapp.R
 import com.example.sergeykuchin.adorablecameraapp.databinding.ActivityMainBinding
-import com.example.sergeykuchin.adorablecameraapp.other.extensions.showSnackBarErrorLoadData
+import com.example.sergeykuchin.adorablecameraapp.other.extensions.showSnackBarError
 import com.example.sergeykuchin.adorablecameraapp.other.permissions.PermissionCode
 import com.example.sergeykuchin.adorablecameraapp.other.permissions.PermissionManager
 import com.example.sergeykuchin.adorablecameraapp.view.CommonActivity
@@ -42,7 +42,7 @@ class MainActivity : CommonActivity<MainActivityVM, ActivityMainBinding>() {
         if (grantResults.filter { it == 0 }.size == permissions.size) {
             openCam()
         } else {
-            binding.root.showSnackBarErrorLoadData(R.string.permission_error, R.string.ok, {checkPermissions()})
+            binding.root.showSnackBarError(R.string.permission_error, R.string.ok, {checkPermissions()})
         }
     }
 }

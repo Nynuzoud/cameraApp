@@ -19,7 +19,7 @@ fun <T> Subject<T>.simpleSubscribe(onNext: ((obj: T) -> Unit)? = null, onError: 
                     { onCompleted?.invoke() })
 }
 
-fun View.showSnackBarErrorLoadData(@StringRes message: Int, @StringRes buttonText: Int, function: () -> Unit) {
+fun View.showSnackBarError(@StringRes message: Int, @StringRes buttonText: Int, function: () -> Unit) {
     val snackbar = Snackbar
             .make(this, message, Snackbar.LENGTH_INDEFINITE)
 

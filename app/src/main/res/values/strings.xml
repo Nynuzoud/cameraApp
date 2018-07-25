@@ -1,14 +1,23 @@
 <resources>
     <string name="app_name">AdorableCameraApp</string>
 
-    <string name="next_step">Now you can go to the next step</string>
-
+    <!-- permissions -->
     <string name="permission_error">We need access</string>
 
+    <!-- cam -->
     <string name="open_cam">Open camera</string>
     <string name="take_picture">Take picture</string>
+    <string name="select_image">Select Image</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
 
+    <!-- other -->
     <string name="ok">OK</string>
 
-    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+    <!-- filter names -->
+    <string name="normal">Normal</string>
+    <string name="greyscale">Greyscale</string>
+    <string name="red">Red</string>
+    <string name="green">Green</string>
+    <string name="blue">Blue</string>
+
 </resources>
