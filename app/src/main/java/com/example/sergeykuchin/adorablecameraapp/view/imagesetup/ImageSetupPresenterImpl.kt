@@ -4,8 +4,6 @@ import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
-import android.os.Handler
-import android.os.HandlerThread
 import android.provider.MediaStore
 import android.support.media.ExifInterface
 import android.view.View
@@ -125,17 +123,10 @@ class ImageSetupPresenterImpl(val view: ImageSetupFragmentView,
 
         val file = utils.createPictureWithUniqueName()
 
-
-        val handlerThread = HandlerThread("BitmapCaching")
-        handlerThread.start()
-
-        val backgroundHandler = Handler(handlerThread.looper)
-        backgroundHandler.post {
-            val out = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.flush()
-            out.close()
-        }
+        val out = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        out.flush()
+        out.close()
 
         view.addCachedBitmapUri(id, Uri.fromFile(file))
     }
@@ -166,7 +157,8 @@ class ImageSetupPresenterImpl(val view: ImageSetupFragmentView,
                         0.0,
                         0.0,
                         255.0)
-            } else -> null
+            }
+            else -> null
         }
     }
 

@@ -64,12 +64,11 @@ class ImageSetupFragment : CommonFragment<ImageSetupFragmentVM, FragmentImageSet
 
         viewModel.setFileUri(arguments?.getString(FILE_URI))
 
+        binding.viewModel = viewModel
 
         initFilterRecycler()
 
         presenter.setImageToImageView()
-
-        binding.viewModel = viewModel
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {

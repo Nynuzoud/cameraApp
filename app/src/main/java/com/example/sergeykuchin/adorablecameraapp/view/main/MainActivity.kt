@@ -25,6 +25,8 @@ class MainActivity : CommonActivity<ViewModel, ActivityMainBinding>() {
         }
     }
 
+    fun getBinding(): ActivityMainBinding = binding
+
     fun enableActionBar(toolbar: Toolbar) {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

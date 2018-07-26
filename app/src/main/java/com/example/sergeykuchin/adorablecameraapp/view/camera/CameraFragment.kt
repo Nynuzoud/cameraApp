@@ -79,9 +79,13 @@ class CameraFragment : CommonFragment<CameraFragmentVM, FragmentCameraBinding>()
     }
 
     private fun checkPermissions(): Boolean {
-        if (PermissionManager.mayRequestPermissions(activity as MainActivity, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA),
-                        PermissionCode.COMMON_GROUP_REQUEST_CODE)) {
+        if (PermissionManager.mayRequestPermissions(
+                        fragment = this,
+                        permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA),
+                        requestCode = PermissionCode.COMMON_GROUP_REQUEST_CODE,
+                        snackBarView = (activity as MainActivity).getBinding().root,
+                        resId = R.string.permission_error)) {
             return true
         }
         return false
