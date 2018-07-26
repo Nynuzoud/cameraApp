@@ -17,7 +17,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".view.main.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,15 +26,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".view.camera.CameraActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
-
-        <activity android:name=".view.imagesetup.ImageSetupActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
-
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.example.sergeykuchin.adorablecameraapp.ImageFileProvider"
+            android:authorities="@string/file_provider_authority"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

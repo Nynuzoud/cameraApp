@@ -7,7 +7,7 @@ import com.example.sergeykuchin.adorablecameraapp.R
 import io.reactivex.subjects.BehaviorSubject
 import javax.inject.Inject
 
-class CameraActivityVM @Inject constructor() : ViewModel() {
+class CameraFragmentVM @Inject constructor() : ViewModel() {
 
 
     ///////////////////////////////////////////////////////////////////////////

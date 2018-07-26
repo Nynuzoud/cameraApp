@@ -22,7 +22,7 @@ class AppModule {
     /////////////CAMERA HELPER MODULE////////////
     @Singleton
     @Provides
-    fun provideCamera2Helper(context: Context): Camera2Helper = Camera2HelperImpl(context)
+    fun provideCamera2Helper(context: Context, utils: Utils): Camera2Helper = Camera2HelperImpl(context, utils)
 
     ////////////////////UTILS//////////////////
     @Singleton

@@ -7,7 +7,6 @@ import android.graphics.*
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
-import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -17,18 +16,18 @@ import android.view.Surface
 import android.view.TextureView
 import android.widget.Toast
 import com.example.sergeykuchin.adorablecameraapp.R
+import com.example.sergeykuchin.adorablecameraapp.other.utils.Utils
 import com.example.sergeykuchin.adorablecameraapp.other.views.AutoFitTextureView
 import com.example.sergeykuchin.adorablecameraapp.viewmodel.camera.FlashStatus
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-class Camera2HelperImpl (val context: Context): Camera2Helper {
+class Camera2HelperImpl (val context: Context, val utils: Utils): Camera2Helper {
 
     private var _activity: Activity? = null
     override var activity: Activity?
@@ -216,7 +215,7 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
     private val mStateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(cameraDevice: CameraDevice) {
-            // This method is called when the camera is opened.  We start camera preview here.
+            // This method is called when the camera is opened.  We createInstance camera preview here.
             mCameraOpenCloseLock.release()
             mCameraDevice = cameraDevice
             createCameraPreviewSession()
@@ -361,7 +360,7 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
     }
 
     override fun createFile() {
-        mFile = createPictureWithUniqueName()
+        mFile = utils.createPictureWithUniqueName()
     }
 
     /**
@@ -428,12 +427,12 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
 
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
-        // a camera and start preview from here (otherwise, we wait until the surface is ready in
+        // a camera and createInstance preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
-        if (_textureView!!.isAvailable) {
-            openCamera(_textureView!!.width, _textureView!!.height)
+        if (_textureView?.isAvailable == true) {
+            openCamera(_textureView?.width ?: 0, _textureView?.height ?: 0)
         } else {
-            _textureView!!.surfaceTextureListener = mSurfaceTextureListener
+            _textureView?.surfaceTextureListener = mSurfaceTextureListener
         }
     }
 
@@ -468,14 +467,14 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
                         CompareSizesByArea())
                 mImageReader = ImageReader.newInstance(largest.width, largest.height,
                         ImageFormat.JPEG, /*maxImages*/2)
-                mImageReader!!.setOnImageAvailableListener(
+                mImageReader?.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler)
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
                 val displayRotation = activity?.windowManager?.defaultDisplay?.rotation
 
-                mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
+                mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
                 var swappedDimensions = false
                 when (displayRotation) {
                     Surface.ROTATION_0, Surface.ROTATION_180 -> if (mSensorOrientation == 90 || mSensorOrientation == 270) {
@@ -519,11 +518,11 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 val orientation = activity?.resources?.configuration?.orientation
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    _textureView!!.setAspectRatio(
-                            mPreviewSize!!.width, mPreviewSize!!.height)
+                    _textureView?.setAspectRatio(
+                            mPreviewSize?.width ?: 0, mPreviewSize?.height ?: 0)
                 } else {
-                    _textureView!!.setAspectRatio(
-                            mPreviewSize!!.height, mPreviewSize!!.width)
+                    _textureView?.setAspectRatio(
+                            mPreviewSize?.height ?: 0, mPreviewSize?.width ?: 0)
                 }
 
                 // Check if the flash is supported.
@@ -570,15 +569,15 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
         try {
             mCameraOpenCloseLock.acquire()
             if (null != mCaptureSession) {
-                mCaptureSession!!.close()
+                mCaptureSession?.close()
                 mCaptureSession = null
             }
             if (null != mCameraDevice) {
-                mCameraDevice!!.close()
+                mCameraDevice?.close()
                 mCameraDevice = null
             }
             if (null != mImageReader) {
-                mImageReader!!.close()
+                mImageReader?.close()
                 mImageReader = null
             }
         } catch (e: InterruptedException) {
@@ -593,7 +592,7 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
      */
     private fun startBackgroundThread() {
         mBackgroundThread = HandlerThread("CameraBackground")
-        mBackgroundThread!!.start()
+        mBackgroundThread?.start()
         mBackgroundHandler = Handler(mBackgroundThread?.looper)
     }
 
@@ -601,9 +600,9 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
      * Stops the background thread and its [Handler].
      */
     private fun stopBackgroundThread() {
-        mBackgroundThread!!.quitSafely()
+        mBackgroundThread?.quitSafely()
         try {
-            mBackgroundThread!!.join()
+            mBackgroundThread?.join()
             mBackgroundThread = null
             mBackgroundHandler = null
         } catch (e: InterruptedException) {
@@ -620,17 +619,17 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
             val texture = _textureView?.surfaceTexture
 
             // We configure the size of default buffer to be the size of camera preview we want.
-            texture?.setDefaultBufferSize(mPreviewSize!!.width, mPreviewSize!!.height)
+            texture?.setDefaultBufferSize(mPreviewSize?.width ?: 0, mPreviewSize?.height ?: 0)
 
-            // This is the output Surface we need to start preview.
+            // This is the output Surface we need to createInstance preview.
             val surface = Surface(texture)
 
             // We set up a CaptureRequest.Builder with the output Surface.
-            mPreviewRequestBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            mPreviewRequestBuilder!!.addTarget(surface)
+            mPreviewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+            mPreviewRequestBuilder?.addTarget(surface)
 
             // Here, we create a CameraCaptureSession for camera preview.
-            mCameraDevice!!.createCaptureSession(Arrays.asList(surface, mImageReader!!.surface),
+            mCameraDevice?.createCaptureSession(Arrays.asList(surface, mImageReader?.surface),
                     object : CameraCaptureSession.StateCallback() {
 
                         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
@@ -639,19 +638,19 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
                                 return
                             }
 
-                            // When the session is ready, we start displaying the preview.
+                            // When the session is ready, we createInstance displaying the preview.
                             mCaptureSession = cameraCaptureSession
                             try {
                                 // Auto focus should be continuous for camera preview.
-                                mPreviewRequestBuilder!!.set(CaptureRequest.CONTROL_AF_MODE,
+                                mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                                 // Flash is automatically enabled when necessary.
                                 //setAutoFlash(mPreviewRequestBuilder)
                                 updateFlash()
 
-                                // Finally, we start displaying the camera preview.
-                                mPreviewRequest = mPreviewRequestBuilder!!.build()
-                                mCaptureSession!!.setRepeatingRequest(mPreviewRequest!!,
+                                // Finally, we createInstance displaying the camera preview.
+                                mPreviewRequest = mPreviewRequestBuilder?.build()
+                                mCaptureSession?.setRepeatingRequest(mPreviewRequest,
                                         mCaptureCallback, mBackgroundHandler)
                             } catch (e: CameraAccessException) {
                                 e.printStackTrace()
@@ -686,21 +685,21 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
         val rotation = activity?.windowManager?.defaultDisplay?.rotation
         val matrix = Matrix()
         val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
-        val bufferRect = RectF(0f, 0f, mPreviewSize!!.height.toFloat(), mPreviewSize!!.width.toFloat())
+        val bufferRect = RectF(0f, 0f, mPreviewSize?.height?.toFloat() ?: 0f, mPreviewSize?.width?.toFloat() ?: 0f)
         val centerX = viewRect.centerX()
         val centerY = viewRect.centerY()
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
             bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
             matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
             val scale = Math.max(
-                    viewHeight.toFloat() / mPreviewSize!!.height,
-                    viewWidth.toFloat() / mPreviewSize!!.width)
+                    viewHeight.toFloat() / (mPreviewSize?.height ?: 1),
+                    viewWidth.toFloat() / (mPreviewSize?.width ?: 1))
             matrix.postScale(scale, scale, centerX, centerY)
             matrix.postRotate((90 * (rotation - 2)).toFloat(), centerX, centerY)
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180f, centerX, centerY)
         }
-        _textureView!!.setTransform(matrix)
+        _textureView?.setTransform(matrix)
     }
 
     /**
@@ -716,11 +715,11 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
     private fun lockFocus() {
         try {
             // This is how to tell the camera to lock focus.
-            mPreviewRequestBuilder!!.set(CaptureRequest.CONTROL_AF_TRIGGER,
+            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START)
             // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK
-            mCaptureSession!!.capture(mPreviewRequestBuilder!!.build(), mCaptureCallback,
+            mCaptureSession?.capture(mPreviewRequestBuilder?.build(), mCaptureCallback,
                     mBackgroundHandler)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
@@ -735,11 +734,11 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
     private fun runPrecaptureSequence() {
         try {
             // This is how to tell the camera to trigger.
-            mPreviewRequestBuilder!!.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START)
             // Tell #mCaptureCallback to wait for the precapture sequence to be set.
             mState = STATE_WAITING_PRECAPTURE
-            mCaptureSession!!.capture(mPreviewRequestBuilder!!.build(), mCaptureCallback,
+            mCaptureSession?.capture(mPreviewRequestBuilder?.build(), mCaptureCallback,
                     mBackgroundHandler)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
@@ -792,8 +791,8 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
                 override fun onCaptureCompleted(session: CameraCaptureSession,
                                                 request: CaptureRequest,
                                                 result: TotalCaptureResult) {
-                    //showToast("Saved: " + mFile!!)
-                    Timber.d(mFile!!.toString())
+                    //showToast("Saved: " + mFile?)
+                    Timber.d(mFile?.toString())
                     unlockFocus()
                     actionListener?.pictureSaved(mFile)
                 }
@@ -829,17 +828,17 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
     private fun unlockFocus() {
         try {
             // Reset the auto-focus trigger
-            mPreviewRequestBuilder!!.set(CaptureRequest.CONTROL_AF_TRIGGER,
+            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
             //setAutoFlash(mPreviewRequestBuilder)
             updateFlash()
             mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CaptureRequest.CONTROL_AF_TRIGGER_IDLE)
-            mCaptureSession!!.capture(mPreviewRequestBuilder!!.build(), mCaptureCallback,
+            mCaptureSession?.capture(mPreviewRequestBuilder?.build(), mCaptureCallback,
                     mBackgroundHandler)
             // After this, the camera will go back to the normal state of preview.
             mState = STATE_PREVIEW
-            mCaptureSession!!.setRepeatingRequest(mPreviewRequest!!, mCaptureCallback,
+            mCaptureSession?.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
                     mBackgroundHandler)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
@@ -895,13 +894,5 @@ class Camera2HelperImpl (val context: Context): Camera2Helper {
             return java.lang.Long.signum(lhs.width.toLong() * lhs.height - rhs.width.toLong() * rhs.height)
         }
 
-    }
-
-    private fun createPictureWithUniqueName(): File {
-
-        val timeStamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-        val pictureFile = "CAMERA_APP_$timeStamp"
-        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(pictureFile, ".jpg", storageDir)
     }
 }

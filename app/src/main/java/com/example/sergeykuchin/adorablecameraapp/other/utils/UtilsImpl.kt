@@ -4,10 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
+import android.os.Environment
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.lang.ref.WeakReference
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class UtilsImpl(val context: Context): Utils {
@@ -21,7 +25,7 @@ class UtilsImpl(val context: Context): Utils {
 
         if (bos.get() == null) return null
 
-        bitmap.compress(CompressFormat.JPEG, 0, bos.get())
+        bitmap.compress(CompressFormat.JPEG, 30, bos.get())
         val bitmapdata = bos.get()?.toByteArray()
         bis = BufferedInputStream(ByteArrayInputStream(bitmapdata))
         bis.mark(bis.available())
@@ -37,8 +41,7 @@ class UtilsImpl(val context: Context): Utils {
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false
         bis.reset()
-        val testBitmap2 = BitmapFactory.decodeStream(bis, null, options)
-        return testBitmap2
+        return BitmapFactory.decodeStream(bis, null, options)
     }
 
     private fun calculateInSampleSize(
@@ -62,5 +65,13 @@ class UtilsImpl(val context: Context): Utils {
         }
 
         return inSampleSize
+    }
+
+    override fun createPictureWithUniqueName(): File {
+
+        val timeStamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        val pictureFile = "CAMERA_APP_$timeStamp"
+        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(pictureFile, ".jpg", storageDir)
     }
 }

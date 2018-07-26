@@ -11,7 +11,7 @@ import com.example.sergeykuchin.adorablecameraapp.view.imagesetup.adapter.ImageF
 import io.reactivex.subjects.BehaviorSubject
 import javax.inject.Inject
 
-class ImageSetupActivityVM @Inject constructor(val utils: Utils): ViewModel() {
+class ImageSetupFragmentVM @Inject constructor(private val utils: Utils): ViewModel() {
 
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////GETTERS/SETTERS///////////////////////////
@@ -66,9 +66,17 @@ class ImageSetupActivityVM @Inject constructor(val utils: Utils): ViewModel() {
                 reqWidthRes = R.dimen.filter_item_width,
                 reqHeightRes = R.dimen.filter_item_height
         )
-//        return Bitmap.createScaledBitmap(bitmap,
-//                utils.convertDpToPx(R.dimen.filter_item_width).toInt(),
-//                utils.convertDpToPx(R.dimen.filter_item_height).toInt(),
-//                false)
     }
+
+
+    private val _cachedBitmapUrisMap = HashMap<Int, Uri>()
+    val cachedBitmapUrisMap: HashMap<Int, Uri>
+        get() = _cachedBitmapUrisMap
+
+    private var _selectedImageId: Int? = null
+    var selectedImageId: Int?
+        get() = _selectedImageId
+        set(value) {
+            _selectedImageId = value
+        }
 }
